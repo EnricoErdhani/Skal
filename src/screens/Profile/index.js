@@ -19,9 +19,6 @@ const ProfileScreen = () => {
             <Text style={styles.Logo}>Skal</Text>
           </View>
         </View>
-        <View style={styles.rightContainer}>
-          <Notification color={colors.black()} variant="Linear" size={24} />
-        </View>
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -52,12 +49,16 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <View style={{ backgroundColor: 'lightgrey', marginTop: 20, padding: 10, borderRadius: 25 }}>
+          <View style={{ backgroundColor: 'lightgrey', marginTop: 20, padding: 10, borderRadius: 25, height: 400}}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, }}>
               <Setting2 variant='Linear' color='black' size={24} />
               <Text style={{ color: 'black', marginLeft: 10, fontSize: 16 }}>Pengaturan</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, }}>
+              <Notification variant='Linear' color='black' size={24} />
+              <Text style={{ color: 'black', marginLeft: 10, fontSize: 16 }}>Notification</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, }}>
               <LogoutCurve variant='Linear' color='black' size={24} />
               <Text style={{ color: 'black', marginLeft: 10, fontSize: 16 }}>Logout</Text>
             </View>
@@ -166,7 +167,7 @@ const profile = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: 'white',
-    marginHorizontal: 20,
+    marginHorizontal: 5,
     marginTop: 10,
     borderRadius: 10,
   },
