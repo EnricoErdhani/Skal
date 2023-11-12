@@ -4,7 +4,8 @@ import { Notification, Receipt21, Clock, Message, Home2, Setting2 } from 'iconsa
 import { fontType, colors } from '../../theme';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import { sliderImages, flatlist } from '../../../data';
-
+import { useNavigation } from '@react-navigation/native';
+const navigation = useNavigation();
 const truncateTextByWords = (text, maxWords) => {
   const words = text.split(' ');
   if (words.length > maxWords) {
@@ -112,7 +113,7 @@ const BeritaList = () => {
   return (
     <ScrollView contentContainerStyle={beritaStyle.container}>
       {flatlist.map((newsItem) => (
-        <View style={beritaStyle.newsItem} key={newsItem.id}>
+        <TouchableOpacity style={beritaStyle.newsItem} key={newsItem.id} onPress={() => navigation.navigate('DetailNews', { blogId: newsItem.id })}>
           <ImageBackground source={{ uri: newsItem.image }} style={beritaStyle.image}>
             <View style={beritaStyle.overlay} />
             <View style={itemHorizontal.cardContent}>
@@ -127,7 +128,7 @@ const BeritaList = () => {
             <Text style={beritaStyle.title}>{truncateTextByWords(newsItem.title, 5)}</Text>
             <Text style={beritaStyle.description}>{newsItem.description}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
