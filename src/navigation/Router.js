@@ -25,9 +25,7 @@ function MainApp() {
 
           if (rn === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (rn === 'Search') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (rn === 'Favorite') {
+          }  else if (rn === 'Favorite') {
             iconName = focused ? 'bookmark' : 'bookmark-outline';
           } else if (rn === 'Profile') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';

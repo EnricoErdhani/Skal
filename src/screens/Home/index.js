@@ -1,10 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Notification, Receipt21, Clock, Message, Home2, Setting2 } from 'iconsax-react-native';
 import { fontType, colors } from '../../theme';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import { sliderImages, flatlist } from '../../../data';
 import { useNavigation } from '@react-navigation/native';
+
+const scrollY = useRef(new Animated.Value(0)).current;
+const diffClampY = Animated.diffClamp(scrollY, 0, 60);
+const recentY = diffClampY.interpolate({
+  inputRange: [0, 60],
+  outputRange: [0, -60],
+});
 const navigation = useNavigation();
 const truncateTextByWords = (text, maxWords) => {
   const words = text.split(' ');
@@ -49,7 +56,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: 'White', }}>
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, { transform: [{ translateY: recentY }] }]}>
         <View style={styles.leftContainer}>
           <Image
             source={{
@@ -65,10 +72,14 @@ export default function HomeScreen() {
           <Notification color={colors.black()} variant="Linear" size={24} />
           <Setting2 color={colors.black()} variant="Linear" size={24} />
         </View>
-      </View>
-      <ScrollView>
-
-
+      </Animated.View>
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        contentContainerStyle={{ paddingTop: 60 }}>
         <View >
           <Carousel
             ref={isCarousel}
@@ -104,7 +115,7 @@ export default function HomeScreen() {
         </View>
         <BeritaList />
 
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -270,6 +281,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     height: 60,
     backgroundColor: 'rgb(132, 209, 92)',
+    position: 'absolute',
+    top: 0,
+    zIndex: 1000,
+    right: 0,
+    left: 0,
   },
   leftContainer: {
     flexDirection: 'row',

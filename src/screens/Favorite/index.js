@@ -1,14 +1,21 @@
 import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Notification, Receipt21, Clock, Message, Home2, Setting2, Heart, HeartSlash } from 'iconsax-react-native';
 import { fontType, colors } from '../../theme';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import { sliderImages, flatlist, ListFavorite } from '../../../data';
 
+const scrollY = useRef(new Animated.Value(0)).current;
+const diffClampY = Animated.diffClamp(scrollY, 0, 60);
+const recentY = diffClampY.interpolate({
+  inputRange: [0, 60],
+  outputRange: [0, -60],
+});
+
 export default function FavoriteScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: 'White', }}>
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, { transform: [{ translateY: recentY }] }]}>
         <View style={styles.leftContainer}>
           <Image
             source={{
@@ -24,11 +31,17 @@ export default function FavoriteScreen() {
           <Notification color={colors.black()} variant="Linear" size={24} />
           <Setting2 color={colors.black()} variant="Linear" size={24} />
         </View>
-      </View>
-      <ScrollView>
+        </Animated.View>
+        <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        contentContainerStyle={{ paddingTop: 5 }}>
         <Text style={{ color: 'black', fontSize: 24, paddingHorizontal: 24, paddingVertical: 15, fontWeight: 'bold' }} >Favorite</Text>
         <FavoriteList />
-      </ScrollView>
+        </Animated.ScrollView>
     </View>
   );
 }
