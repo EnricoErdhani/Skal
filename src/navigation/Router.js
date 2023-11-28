@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { FavoriteScreen, HomeScreen, ProfileScreen, DetailNews } from '../screens';
+import { FavoriteScreen, HomeScreen, ProfileScreen, DetailNews, Search, AddBeritaForm } from '../screens';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
@@ -25,7 +25,7 @@ function MainApp() {
 
           if (rn === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          }  else if (rn === 'Favorite') {
+          } else if (rn === 'Favorite') {
             iconName = focused ? 'bookmark' : 'bookmark-outline';
           } else if (rn === 'Profile') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
@@ -54,6 +54,26 @@ const Router = () => {
       <Stack.Screen
         name="DetailNews"
         component={DetailNews}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          animationTypeForReplace: 'pop',
+          gestureEnabled: true,
+          gestureDirection: 'horizontal',
+          ...TransitionPresets.SlideFromRightIOS,
+        }}
+      />
+      <Stack.Screen
+        name="SearchPage"
+        component={Search}
+        options={{
+          headerShown: false,
+          presentation: 'transparentModal',
+        }}
+      />
+      <Stack.Screen
+        name="AddBerita"
+        component={AddBeritaForm}
         options={{
           headerShown: false,
           animationEnabled: true,

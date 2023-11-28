@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated } from 'react-native';
-import { Notification, Receipt21, Clock, Message, Home2, Setting2 } from 'iconsax-react-native';
+import { Notification, Receipt21, Clock, Message, Home2, Setting2, SearchNormal, Edit } from 'iconsax-react-native';
 import { fontType, colors } from '../../theme';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import { sliderImages, flatlist } from '../../../data';
@@ -70,7 +70,9 @@ export default function HomeScreen() {
         </View>
         <View style={styles.rightContainer}>
           <Notification color={colors.black()} variant="Linear" size={24} />
-          <Setting2 color={colors.black()} variant="Linear" size={24} />
+          <TouchableOpacity onPress={() => navigation.navigate("SearchPage")}>
+            <SearchNormal color={colors.black()} variant="Linear" size={24} />
+          </TouchableOpacity>
         </View>
       </Animated.View>
       <Animated.ScrollView
@@ -116,6 +118,12 @@ export default function HomeScreen() {
         <BeritaList />
 
       </Animated.ScrollView>
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => navigation.navigate("AddBerita")}
+      >
+        <Edit color={colors.white()} variant="Linear" size={20} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -269,7 +277,23 @@ const styles = StyleSheet.create({
   activePaginationText: {
     color: 'black',
   },
+  floatingButton: {
+    backgroundColor: 'rgb(132, 209, 92)',
+    padding: 15,
+    position: 'absolute',
+    bottom: 100,
+    right: 24,
+    borderRadius: 10,
+    shadowColor: 'rgb(132, 209, 92)',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
 
+    elevation: 8,
+  },
   container: {
     flex: 1,
   },
