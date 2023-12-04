@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { FavoriteScreen, HomeScreen, ProfileScreen, DetailNews, Search, AddBeritaForm } from '../screens';
+import { FavoriteScreen, HomeScreen, ProfileScreen, DetailNews, Search, AddBeritaForm, EditBeritaForm } from '../screens';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Tab = createBottomTabNavigator();
@@ -74,6 +74,18 @@ const Router = () => {
       <Stack.Screen
         name="AddBerita"
         component={AddBeritaForm}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+          animationTypeForReplace: 'pop',
+          gestureEnabled: true,
+          gestureDirection: 'horizontal',
+          ...TransitionPresets.SlideFromRightIOS,
+        }}
+      />
+      <Stack.Screen
+        name="EditBerita"
+        component={EditBeritaForm}
         options={{
           headerShown: false,
           animationEnabled: true,

@@ -1,10 +1,13 @@
-import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated } from 'react-native';
+import React, { useRef, useState, useCallback } from 'react';
+import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated, ActivityIndicator, RefreshControl } from 'react-native';
 import { Notification, Receipt21, Clock, Message, Home2, Setting2, SearchNormal, Edit } from 'iconsax-react-native';
 import { fontType, colors } from '../../theme';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import { sliderImages, flatlist } from '../../../data';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
+import { formatDate } from '../../utils/formatDate';
+
 
 const scrollY = useRef(new Animated.Value(0)).current;
 const diffClampY = Animated.diffClamp(scrollY, 0, 60);
@@ -23,6 +26,7 @@ const truncateTextByWords = (text, maxWords) => {
 
 
 export default function HomeScreen() {
+
   const { width: screenWidth } = Dimensions.get('window');
   const isCarousel = useRef(null);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -129,9 +133,39 @@ export default function HomeScreen() {
 }
 
 const BeritaList = () => {
+  const [loading, setLoading] = useState(true);
+  const [blogData, setBlogData] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const getDataBlog = async () => {
+    try {
+      const response = await axios.get(
+        'https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita',
+      );
+      setBlogData(response.data);
+      setLoading(false)
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      getDataBlog()
+      setRefreshing(false);
+    }, 1500);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      getDataBlog();
+    }, [])
+  );
   return (
-    <ScrollView contentContainerStyle={beritaStyle.container}>
-      {flatlist.map((newsItem) => (
+    <ScrollView contentContainerStyle={beritaStyle.container} refreshControl={
+      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    }>
+      {blogData.map((newsItem) => (
         <TouchableOpacity style={beritaStyle.newsItem} key={newsItem.id} onPress={() => navigation.navigate('DetailNews', { blogId: newsItem.id })}>
           <ImageBackground source={{ uri: newsItem.image }} style={beritaStyle.image}>
             <View style={beritaStyle.overlay} />
@@ -145,7 +179,7 @@ const BeritaList = () => {
           </ImageBackground>
           <View style={{}}>
             <Text style={beritaStyle.title}>{truncateTextByWords(newsItem.title, 5)}</Text>
-            <Text style={beritaStyle.description}>{newsItem.description}</Text>
+            <Text style={beritaStyle.description}>{formatDate(newsItem.createdAt)}</Text>
           </View>
         </TouchableOpacity>
       ))}

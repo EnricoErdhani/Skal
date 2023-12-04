@@ -1,15 +1,61 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Like1, Receipt21, Message, Share, More, Heart } from 'iconsax-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { flatlist } from '../../../data';
+import axios from 'axios';
+import ActionSheet from 'react-native-actions-sheet';
+import { formatDate } from '../../utils/formatDate';
 const DetailNews = ({ route }) => {
   const { blogId } = route.params;
   const [iconStates, setIconStates] = useState({
     liked: { variant: 'Linear', color: 'black' },
     bookmarked: { variant: 'Linear', color: 'black' },
   });
-  const selectedBlog = flatlist.find(blog => blog.id === blogId);
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const actionSheetRef = useRef(null);
+
+  const openActionSheet = () => {
+    actionSheetRef.current?.show();
+  };
+
+  const closeActionSheet = () => {
+    actionSheetRef.current?.hide();
+  };
+
+  useEffect(() => {
+    getBlogById();
+  }, [blogId]);
+
+  const getBlogById = async () => {
+    try {
+      const response = await axios.get(
+        `https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`,
+      );
+      setSelectedBlog(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const navigateEdit = () => {
+    closeActionSheet()
+    navigation.navigate('EditBerita', { blogId })
+  }
+  const handleDelete = async () => {
+    await axios.delete(`https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`)
+      .then(() => {
+        closeActionSheet()
+        navigation.navigate('Home');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
   const navigation = useNavigation();
   const toggleIcon = iconName => {
     setIconStates(prevStates => ({
@@ -34,11 +80,13 @@ const DetailNews = ({ route }) => {
           />
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 20 }}>
-          <More
-            color={'black'}
-            variant="Linear"
-            style={{ transform: [{ rotate: '90deg' }] }}
-          />
+          <TouchableOpacity onPress={openActionSheet}>
+            <More
+              color={'black'}
+              variant="Linear"
+              style={{ transform: [{ rotate: '90deg' }] }}
+            />
+          </TouchableOpacity>
         </View>
       </View>
       <ScrollView
@@ -52,7 +100,7 @@ const DetailNews = ({ route }) => {
           <Image
             style={{ ...styles.image, }}
             source={{
-              uri: selectedBlog.image,
+              uri: selectedBlog?.image,
             }}
             resizeMode={'cover'} />
         </View>
@@ -62,15 +110,15 @@ const DetailNews = ({ route }) => {
             justifyContent: 'space-between',
           }}>
           <View style={{ backgroundColor: 'rgb(132, 209, 92)', borderBottomLeftRadius: 0, borderBottomRightRadius: 10, padding: 10, paddingLeft: 20, paddingRight: 20 }}>
-            <Text style={styles.category}>{selectedBlog.category}</Text>
+            <Text style={styles.category}>{selectedBlog?.category.name}</Text>
           </View>
           <View style={{ paddingRight: 10, paddingTop: 10 }}>
-            <Text style={styles.date}>{selectedBlog.description}</Text>
+            <Text style={styles.date}>{formatDate(selectedBlog?.createdAt)}</Text>
           </View>
         </View>
         <View style={{ paddingHorizontal: 10 }}>
-          <Text style={styles.title}>{selectedBlog.title}</Text>
-          <Text style={styles.content}>{selectedBlog.content}</Text>
+          <Text style={styles.title}>{selectedBlog?.title}</Text>
+          <Text style={styles.content}>{selectedBlog?.content}</Text>
         </View>
       </ScrollView>
       <View style={styles.bottomBar}>
@@ -94,6 +142,67 @@ const DetailNews = ({ route }) => {
           />
         </TouchableOpacity>
       </View>
+      <ActionSheet
+        ref={actionSheetRef}
+        containerStyle={{
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
+        }}
+        indicatorStyle={{
+          width: 100,
+        }}
+        gestureEnabled={true}
+        defaultOverlayOpacity={0.3}>
+        <TouchableOpacity
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 15,
+          }}
+          onPress={navigateEdit}
+        >
+          <Text
+            style={{
+              
+              color: 'black',
+              fontSize: 18,
+            }}>
+            Edit
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 15,
+          }}
+          onPress={handleDelete}>
+          <Text
+            style={{
+              
+              color: 'black',
+              fontSize: 18,
+            }}>
+            Delete
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 15,
+          }}
+          onPress={closeActionSheet}>
+          <Text
+            style={{
+              
+              color: 'red',
+              fontSize: 18,
+            }}>
+            Cancel
+          </Text>
+        </TouchableOpacity>
+      </ActionSheet>
     </View>
   );
 };

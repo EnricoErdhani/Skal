@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -14,30 +14,10 @@ import { fontType, colors } from "../../theme";
 import DropDownPicker from "react-native-dropdown-picker";
 import axios from 'axios';
 
-const AddBlogForm = () => {
+const EditBlogForm = ({ route }) => {
+    const { blogId } = route.params;
     const [loading, setLoading] = useState(false);
-    const handleUpload = async () => {
-        setLoading(true);
-        try {
-            await axios.post('https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita', {
-                image,
-                title: blogData.title,
-                category: blogData.category,
-                createdAt: new Date(),
-                content: blogData.content,
-            })
-                .then(function (response) {
-                    console.log(response);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-            setLoading(false);
-            navigation.navigate('Home');
-        } catch (e) {
-            console.log(e);
-        }
-    };
+
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [itemCategory, setItems] = useState([
@@ -60,6 +40,57 @@ const AddBlogForm = () => {
     };
     const [image, setImage] = useState(null);
     const navigation = useNavigation();
+    useEffect(() => {
+        getBlogById();
+    }, [blogId]);
+
+    const getBlogById = async () => {
+        try {
+            const response = await axios.get(
+                `https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`,
+            );
+            if (response.data.category && response.data.category.id) {
+                const selectedItem = itemCategory.find(item => item.id === response.data.category.id);
+                if (selectedItem) {
+                    setValue(selectedItem.value);
+                }
+            }
+            setBlogData({
+                title: response.data.title,
+                content: response.data.content,
+                category: {
+                    id: response.data.category.id,
+                    name: response.data.category.name
+                }
+            })
+            setImage(response.data.image)
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    const handleUpdate = async () => {
+        setLoading(true);
+        try {
+            await axios
+                .put(`https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`, {
+                    image,
+                    title: blogData.title,
+                    category: blogData.category,
+                    content: blogData.content,
+                })
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            setLoading(false);
+            navigation.navigate('Home');
+        } catch (e) {
+            console.log(e);
+        }
+    };
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -67,7 +98,7 @@ const AddBlogForm = () => {
                     <ArrowLeft color={colors.black()} variant="Linear" size={24} />
                 </TouchableOpacity>
                 <View style={{ flex: 1, alignItems: "center" }}>
-                    <Text style={styles.title}>Create Post</Text>
+                    <Text style={styles.title}>Edit Post</Text>
                 </View>
             </View>
             <ScrollView
@@ -143,7 +174,7 @@ const AddBlogForm = () => {
             </ScrollView>
 
             <View style={styles.bottomBar}>
-                <TouchableOpacity style={styles.button} onPress={handleUpload}>
+                <TouchableOpacity style={styles.button} onPress={handleUpdate}>
                     <Text style={styles.buttonLabel}>Upload</Text>
                 </TouchableOpacity>
             </View>
@@ -156,7 +187,7 @@ const AddBlogForm = () => {
     );
 };
 
-export default AddBlogForm;
+export default EditBlogForm;
 
 const styles = StyleSheet.create({
     container: {
