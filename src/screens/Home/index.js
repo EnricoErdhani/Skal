@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, Image, ImageBackground, Dimensions, FlatList, TouchableOpacity, Animated, ActivityIndicator, RefreshControl } from 'react-native';
 import { Notification, Receipt21, Clock, Message, Home2, Setting2, SearchNormal, Edit } from 'iconsax-react-native';
 import { fontType, colors } from '../../theme';
@@ -7,6 +7,7 @@ import { sliderImages, flatlist } from '../../../data';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import { formatDate } from '../../utils/formatDate';
+import firestore from '@react-native-firebase/firestore';
 
 
 const scrollY = useRef(new Animated.Value(0)).current;
@@ -136,31 +137,66 @@ const BeritaList = () => {
   const [loading, setLoading] = useState(true);
   const [blogData, setBlogData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const getDataBlog = async () => {
-    try {
-      const response = await axios.get(
-        'https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita',
-      );
-      setBlogData(response.data);
-      setLoading(false)
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  useEffect(() => {
+    const subscriber = firestore()
+      .collection('berita')
+      .onSnapshot(querySnapshot => {
+        const blogs = [];
+        querySnapshot.forEach(documentSnapshot => {
+          blogs.push({
+            ...documentSnapshot.data(),
+            id: documentSnapshot.id,
+          });
+        });
+        setBlogData(blogs);
+        setLoading(false);
+      });
+    return () => subscriber();
+  }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
-      getDataBlog()
+      firestore()
+        .collection('berita')
+        .onSnapshot(querySnapshot => {
+          const blogs = [];
+          querySnapshot.forEach(documentSnapshot => {
+            blogs.push({
+              ...documentSnapshot.data(),
+              id: documentSnapshot.id,
+            });
+          });
+          setBlogData(blogs);
+        });
       setRefreshing(false);
     }, 1500);
   }, []);
+  // const getDataBlog = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       'https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita',
+  //     );
+  //     setBlogData(response.data);
+  //     setLoading(false)
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  useFocusEffect(
-    useCallback(() => {
-      getDataBlog();
-    }, [])
-  );
+  // const onRefresh = useCallback(() => {
+  //   setRefreshing(true);
+  //   setTimeout(() => {
+  //     getDataBlog()
+  //     setRefreshing(false);
+  //   }, 1500);
+  // }, []);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     getDataBlog();
+  //   }, [])
+  // );
   return (
     <ScrollView contentContainerStyle={beritaStyle.container} refreshControl={
       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

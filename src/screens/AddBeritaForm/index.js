@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -6,38 +6,81 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    ActivityIndicator
+    ActivityIndicator,
+    Image
 } from "react-native";
-import { ArrowLeft } from "iconsax-react-native";
+import { ArrowLeft, Add, AddSquare } from "iconsax-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { fontType, colors } from "../../theme";
 import DropDownPicker from "react-native-dropdown-picker";
 import axios from 'axios';
+import ImagePicker from 'react-native-image-crop-picker';
+import storage from '@react-native-firebase/storage';
+import firestore from '@react-native-firebase/firestore';
 
 const AddBlogForm = () => {
-    const [loading, setLoading] = useState(false);
+    const handleImagePick = async () => {
+        ImagePicker.openPicker({
+            width: 1920,
+            height: 1080,
+            cropping: true,
+        })
+            .then(image => {
+                console.log(image);
+                setImage(image.path);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    };
     const handleUpload = async () => {
+        let filename = image.substring(image.lastIndexOf('/') + 1);
+        const extension = filename.split('.').pop();
+        const name = filename.split('.').slice(0, -1).join('.');
+        filename = name + Date.now() + '.' + extension;
+        const reference = storage().ref(`beritaimages/${filename}`);
+
         setLoading(true);
         try {
-            await axios.post('https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita', {
-                image,
+            await reference.putFile(image);
+            const url = await reference.getDownloadURL();
+            await firestore().collection('berita').add({
+                image: url,
                 title: blogData.title,
                 category: blogData.category,
                 createdAt: new Date(),
                 content: blogData.content,
-            })
-                .then(function (response) {
-                    console.log(response);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
+            });
             setLoading(false);
+            console.log('Blog added!');
             navigation.navigate('Home');
-        } catch (e) {
-            console.log(e);
+        } catch (error) {
+            console.log(error);
         }
     };
+    const [loading, setLoading] = useState(false);
+    // const handleUpload = async () => {
+    //     setLoading(true);
+    //     try {
+    //         await axios.post('https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita', {
+    //             image,
+    //             title: blogData.title,
+    //             category: blogData.category,
+    //             createdAt: new Date(),
+    //             content: blogData.content,
+    //         })
+    //             .then(function (response) {
+    //                 console.log(response);
+    //             })
+    //             .catch(function (error) {
+    //                 console.log(error);
+    //             });
+    //         setLoading(false);
+    //         navigation.navigate('Home');
+    //     } catch (e) {
+    //         console.log(e);
+    //     }
+    // };
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [itemCategory, setItems] = useState([
@@ -97,7 +140,7 @@ const AddBlogForm = () => {
                         style={textInput.content}
                     />
                 </View>
-                <View style={[textInput.borderDashed]}>
+                {/* <View style={[textInput.borderDashed]}>
                     <TextInput
                         placeholder="Image"
                         value={image}
@@ -105,7 +148,57 @@ const AddBlogForm = () => {
                         placeholderTextColor={colors.grey(0.6)}
                         style={textInput.content}
                     />
-                </View>
+                </View> */}
+                {image ? (
+                    <View style={{ position: 'relative' }}>
+                        <Image
+                            style={{ width: '100%', height: 127, borderRadius: 5 }}
+                            source={{
+                                uri: image,
+                            }}
+                            resizeMode={'cover'}
+                        />
+                        <TouchableOpacity
+                            style={{
+                                position: 'absolute',
+                                top: -5,
+                                right: -5,
+                                backgroundColor: colors.blue(),
+                                borderRadius: 25,
+                            }}
+                            onPress={() => setImage(null)}>
+                            <Add
+                                size={20}
+                                variant="Linear"
+                                color={colors.white()}
+                                style={{ transform: [{ rotate: '45deg' }] }}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <TouchableOpacity onPress={handleImagePick}>
+                        <View
+                            style={[
+                                textInput.borderDashed,
+                                {
+                                    gap: 10,
+                                    paddingVertical: 30,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                },
+                            ]}>
+                            <AddSquare color={colors.grey(0.6)} variant="Linear" size={42} />
+                            <Text
+                                style={{
+                                    fontFamily: fontType['Pjs-Regular'],
+                                    fontSize: 12,
+                                    color: colors.grey(0.6),
+                                }}>
+                                Upload Foto
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
                 <View style={{ ...textInput.borderDashed, marginBottom: 100 }}>
                     <Text
                         style={{

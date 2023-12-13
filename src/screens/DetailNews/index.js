@@ -6,6 +6,9 @@ import { flatlist } from '../../../data';
 import axios from 'axios';
 import ActionSheet from 'react-native-actions-sheet';
 import { formatDate } from '../../utils/formatDate';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+
 const DetailNews = ({ route }) => {
   const { blogId } = route.params;
   const [iconStates, setIconStates] = useState({
@@ -25,36 +28,76 @@ const DetailNews = ({ route }) => {
     actionSheetRef.current?.hide();
   };
 
-  useEffect(() => {
-    getBlogById();
-  }, [blogId]);
+  // useEffect(() => {
+  //   getBlogById();
+  // }, [blogId]);
 
-  const getBlogById = async () => {
-    try {
-      const response = await axios.get(
-        `https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`,
-      );
-      setSelectedBlog(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const getBlogById = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`,
+  //     );
+  //     setSelectedBlog(response.data);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+
+  useEffect(() => {
+    const subscriber = firestore()
+      .collection('berita')
+      .doc(blogId)
+      .onSnapshot(documentSnapshot => {
+        const blogData = documentSnapshot.data();
+        if (blogData) {
+          console.log('Blog data: ', blogData);
+          setSelectedBlog(blogData);
+        } else {
+          console.log(`Blog with ID ${blogId} not found.`);
+        }
+      });
+    setLoading(false);
+    return () => subscriber();
+  }, [blogId]);
 
   const navigateEdit = () => {
     closeActionSheet()
     navigation.navigate('EditBerita', { blogId })
   }
+  // const handleDelete = async () => {
+  //   await axios.delete(`https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`)
+  //     .then(() => {
+  //       closeActionSheet()
+  //       navigation.navigate('Home');
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // }
   const handleDelete = async () => {
-    await axios.delete(`https://656c51fce1e03bfd572e30d7.mockapi.io/skal/Berita/${blogId}`)
-      .then(() => {
-        closeActionSheet()
-        navigation.navigate('Home');
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
+    setLoading(true);
+    try {
+      await firestore()
+        .collection('berita')
+        .doc(blogId)
+        .delete()
+        .then(() => {
+          console.log('Blog deleted!');
+        });
+      if (selectedBlog?.image) {
+        const imageRef = storage().refFromURL(selectedBlog?.image);
+        await imageRef.delete();
+      }
+      console.log('Blog deleted!');
+      closeActionSheet();
+      setSelectedBlog(null);
+      setLoading(false)
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const navigation = useNavigation();
   const toggleIcon = iconName => {
@@ -163,7 +206,7 @@ const DetailNews = ({ route }) => {
         >
           <Text
             style={{
-              
+
               color: 'black',
               fontSize: 18,
             }}>
@@ -179,7 +222,7 @@ const DetailNews = ({ route }) => {
           onPress={handleDelete}>
           <Text
             style={{
-              
+
               color: 'black',
               fontSize: 18,
             }}>
@@ -195,7 +238,7 @@ const DetailNews = ({ route }) => {
           onPress={closeActionSheet}>
           <Text
             style={{
-              
+
               color: 'red',
               fontSize: 18,
             }}>
